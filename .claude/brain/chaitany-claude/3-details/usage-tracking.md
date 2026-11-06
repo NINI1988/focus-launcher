@@ -36,7 +36,7 @@ tens of thousands of events per refresh. Now each event is consumed **exactly on
 - Rebuilt from scratch on a new day, a time-zone change, a backwards clock jump, or process start.
 - Hour buckets by division on normal days; calendar math only on DST days (`plainDay`).
 History (`compute(from,to)`) still does one full pass; finished days are cached as
-`files/usage/YYYY-MM-DD.json`. **Bump `DayUsage.CACHE_VERSION` (now 3) when the math changes.**
+`files/usage/YYYY-MM-DD.json`. **Bump `DayUsage.CACHE_VERSION` (now 4) when the math changes.**
 Empty days are never cached (the OS may simply have dropped the events: retention ≈ a week).
 
 ## What is excluded, and two traps
@@ -47,6 +47,12 @@ Empty days are never cached (the OS may simply have dropped the events: retentio
   `ResolveInfo.priority >= 0`.
 - **Platform limit:** usage inside a managed work profile is invisible to a normal app, so Focus
   can read a little lower than Digital Wellbeing on a phone that has one. Do not work around it.
+- **Task-root attribution:** AOSP UsageStats has a system usage-source mode that attributes app
+  time-limit observers to a task's root activity. The task-root package/class fields and usage-source
+  getter are `@SystemApi`/hidden, so ordinary apps cannot use this as a general replacement for
+  package-based UsageEvents. The current workaround only recognizes allowlisted browser packages
+  whose activity class contains the `.customtabs.` namespace; this is a Chromium-style heuristic,
+  not a platform contract. Do not claim it matches Digital Wellbeing.
 - "Today" = since local midnight. Android's own "daily" bucket does not start at local midnight,
   so its `totalTimeUsed` legitimately differs.
 

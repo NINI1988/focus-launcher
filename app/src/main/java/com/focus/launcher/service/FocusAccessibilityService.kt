@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat
 import com.focus.launcher.BlockActivity
 import com.focus.launcher.Graph
 import com.focus.launcher.data.AppLimit
+import com.focus.launcher.data.ForegroundAttributor
 import com.focus.launcher.util.formatMinutes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -36,6 +37,9 @@ class FocusAccessibilityService : AccessibilityService() {
 
     private val main = Handler(Looper.getMainLooper())
     private val activityCache = LruCache<String, Boolean>(256)
+    private val foregroundAttributor = ForegroundAttributor { pkg ->
+        pkg == packageName || pkg == "com.android.systemui" || Graph.apps.isHomeApp(pkg)
+    }
 
     private var currentPkg: String? = null
     private var sessionStart = 0L
@@ -51,6 +55,7 @@ class FocusAccessibilityService : AccessibilityService() {
             when (intent.action) {
                 Intent.ACTION_SCREEN_OFF -> {
                     cancelTimers()
+                    foregroundAttributor.reset()
                     Graph.limits.sessionConsent = null // the next unlock is a new visit
                 }
                 // After unlocking, the same app is back in front without a fresh window event.
@@ -71,11 +76,12 @@ class FocusAccessibilityService : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event?.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
-        val pkg = event.packageName?.toString() ?: return
+        val sourcePkg = event.packageName?.toString() ?: return
         val cls = event.className?.toString() ?: return
         // Keyboards, dialogs, the notification shade and toasts also raise this event.
         // Only a real activity means the foreground app changed.
-        if (!isActivity(pkg, cls)) return
+        if (!isActivity(sourcePkg, cls)) return
+        val pkg = foregroundAttributor.resumed(sourcePkg, cls)
         // Back on a home screen: the visit the user agreed to is over. (Focus's own wall is in
         // this package too, and is of course not a home screen.)
         if (Graph.limits.sessionConsent != null && cls != BlockActivity::class.java.name && Graph.apps.isHomeApp(pkg)) {
