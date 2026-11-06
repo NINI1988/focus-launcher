@@ -298,11 +298,11 @@ fun HomeScreen(
         }
 
         val options = listOf(
-            Fit(preferredRing, 26f, 10f, maxEvents = 3),
-            Fit(preferredRing, 24f, 8f, maxEvents = 3),
-            Fit(preferredRing, 24f, 7f, maxEvents = 2),
-            Fit(preferredRing * 0.88f, 22f, 6f, maxEvents = 2),
-            Fit(132.dp, 22f, 4f, maxEvents = 1),
+            Fit(preferredRing, 26f, 14f, maxEvents = 3),
+            Fit(preferredRing, 24f, 12f, maxEvents = 3),
+            Fit(preferredRing, 24f, 11f, maxEvents = 2),
+            Fit(preferredRing * 0.88f, 22f, 10f, maxEvents = 2),
+            Fit(132.dp, 22f, 8f, maxEvents = 1),
         )
         val fit = options.firstOrNull { heightOf(it) <= available } ?: options.last()
         val ring = fit.ring.coerceAtLeast(132.dp)
