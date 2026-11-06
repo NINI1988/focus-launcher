@@ -159,6 +159,10 @@ Each entry: symptom → cause → fix / rule. Add to this whenever something cos
   shows up inside the work profile too, which the phone's owner noticed at once. → Always
   `adb install --user 0 …`; check with `pm list packages --user <id> com.focus.launcher`.
 - Work-profile calendars/usage are blocked by policy for personal-side apps; respect it.
+- **An allowlist test used a friendly alias instead of a real package ID.** The fixture passed
+  `brave`, while production only recognizes IDs such as `com.brave.browser`; the tests therefore
+  never entered the Custom Tab path. → Use the exact production identifiers in allowlist tests and
+  assert both the matching and fallback behavior.
 
 ## GitHub
 - **Published an APK that nobody else could rebuild.** `assembleDist` in the everyday working

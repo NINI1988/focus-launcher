@@ -12,8 +12,8 @@ class ForegroundAttributorTest {
         attributor.paused("nunti", "com.nunti.NewsActivity")
 
         val tab = "org.chromium.chrome.browser.customtabs.CustomTabActivity"
-        assertEquals("nunti", attributor.resumed("brave", tab))
-        assertEquals("nunti", attributor.paused("brave", tab))
+        assertEquals("nunti", attributor.resumed("com.brave.browser", tab))
+        assertEquals("nunti", attributor.paused("com.brave.browser", tab))
     }
 
     @Test
@@ -32,17 +32,20 @@ class ForegroundAttributorTest {
 
     @Test
     fun `ordinary browser activities keep their own attribution`() {
-        assertEquals("brave", attributor.resumed("brave", "org.chromium.chrome.browser.BrowserActivity"))
+        assertEquals(
+            "com.brave.browser",
+            attributor.resumed("com.brave.browser", "org.chromium.chrome.browser.BrowserActivity"),
+        )
     }
 
     @Test
     fun `a regular browser activity does not replace the originating app`() {
         attributor.resumed("nunti", "com.nunti.NewsActivity")
-        attributor.resumed("brave", "org.chromium.chrome.browser.BrowserActivity")
+        attributor.resumed("com.brave.browser", "org.chromium.chrome.browser.BrowserActivity")
 
         assertEquals(
             "nunti",
-            attributor.resumed("brave", "org.chromium.chrome.browser.customtabs.CustomTabActivity"),
+            attributor.resumed("com.brave.browser", "org.chromium.chrome.browser.customtabs.CustomTabActivity"),
         )
     }
 
@@ -52,8 +55,8 @@ class ForegroundAttributorTest {
         attributor.resumed("home", "com.launcher.HomeActivity")
 
         assertEquals(
-            "brave",
-            attributor.resumed("brave", "org.chromium.chrome.browser.customtabs.CustomTabActivity"),
+            "com.brave.browser",
+            attributor.resumed("com.brave.browser", "org.chromium.chrome.browser.customtabs.CustomTabActivity"),
         )
     }
 
