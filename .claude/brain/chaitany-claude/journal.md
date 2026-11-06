@@ -879,3 +879,22 @@ plugin cannot parse.
 package filters remain browser-implementation-specific; other installed browser variants were not
 available to verify. No device app names or usage records are retained here.
 
+## 2026-11-06 · Slightly more space between fast apps
+
+**Asked:** move the fast apps a little farther apart.
+**Done:** increased each home-screen fast-app row's vertical padding by 2dp per side. The existing
+`Fit` height estimate uses the same padding values, so its no-scroll layout calculation stays in
+sync. Updated `home-drawer-menu-setup.md` with the spacing mechanism.
+**Verified:** editor diagnostics report no errors for `HomeScreen.kt`; `git diff --check` passes.
+The focused Gradle compile could not run: the available JBR is Java 25.0.4, which this project's
+current Kotlin Gradle plugin cannot parse.
+**Open:** compile and unit-test verification with a compatible JDK (21).
+
+## 2026-11-06 · A little more fast-app spacing
+
+**Asked:** add a little more space between the fast apps.
+**Done:** added another 2dp of vertical padding per side to each `Fit` option, for 4dp per side
+more than the original values. The no-scroll height estimate uses the same values.
+**Verified:** editor diagnostics report no errors for `HomeScreen.kt`; `git diff --check` passes.
+The focused Gradle compile remains blocked by the available Java 25.0.4 JBR.
+
