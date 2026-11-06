@@ -21,7 +21,9 @@ import com.focus.launcher.service.FocusAccessibilityService
 import com.focus.launcher.service.WeeklyReview
 import com.focus.launcher.ui.components.AppPickerDialog
 import com.focus.launcher.ui.components.ChoiceDialog
+import com.focus.launcher.ui.components.FocusDialog
 import com.focus.launcher.ui.components.MultiChoiceDialog
+import com.focus.launcher.ui.components.MenuRow
 import com.focus.launcher.ui.components.SettingRow
 import com.focus.launcher.ui.components.ToggleRow
 import com.focus.launcher.ui.drawer.TimerDialog
@@ -210,6 +212,54 @@ internal fun TimerAppsPage(settings: Settings, apps: List<AppEntry>, onBack: () 
             onDismiss = { adding = false },
             onPick = { editing = it },
         )
+    }
+}
+
+@Composable
+internal fun ScreenTimeAppsPage(settings: Settings, apps: List<AppEntry>, onBack: () -> Unit) {
+    var adding by remember { mutableStateOf(false) }
+    var selected by remember { mutableStateOf<AppEntry?>(null) }
+    val packages = remember(apps) { apps.filterNot { it.isWorkProfile }.distinctBy { it.packageName } }
+    val excluded = remember(packages, settings.screenTimeExcluded) {
+        packages.filter { it.packageName in settings.screenTimeExcluded }
+    }
+
+    Page("Screen time apps", onBack) {
+        Note("Excluded apps still count toward their own timers, but not toward screen-time totals or app breakdowns.")
+        SettingRow(
+            "Exclude an app",
+            subtitle = "Choose an installed app to leave out of screen time.",
+            value = settings.screenTimeExcluded.size.toString(),
+            onClick = { adding = true },
+        )
+        Section("Excluded from screen time")
+        if (excluded.isEmpty()) {
+            Note("No apps are excluded. All installed apps count toward screen time.")
+        }
+        for (app in excluded) {
+            SettingRow(app.label, value = "Excluded", onClick = { selected = app })
+        }
+    }
+
+    if (adding) {
+        AppPickerDialog(
+            title = "Exclude an app",
+            subtitle = "Its time will not count toward your total or app breakdown.",
+            apps = packages.filter { it.packageName !in settings.screenTimeExcluded },
+            onDismiss = { adding = false },
+            onPick = { app ->
+                Graph.settings.update { it.copy(screenTimeExcluded = it.screenTimeExcluded + app.packageName) }
+            },
+        )
+    }
+
+    selected?.let { app ->
+        FocusDialog(onDismiss = { selected = null }, title = app.label) {
+            MenuRow("Count in screen time") {
+                Graph.settings.update { it.copy(screenTimeExcluded = it.screenTimeExcluded - app.packageName) }
+                selected = null
+            }
+        }
     }
 }
 

@@ -30,6 +30,7 @@ ui/     theme/ components/ home/ drawer/ block/ review/ settings/   + Launching.
 | --- | --- |
 | Clock: split (default), ring (battery or day) or plain; tap/long-press action | `ui/home/HomeWidgets.kt` `HomeClock`, `ClockTapDialog.kt` |
 | Screen time on home: title + total + "N% of today" (of 24 h) below the clock, outside the ring, no setting; tap → review (the 24-hour bar was removed from home; `DayBar` lives on in the review) | `HomeWidgets.kt` `ScreenTimeLine`; height counted in `HomeScreen` `heightOf` |
+| Per-app screen-time exclusions: toggle from an app's long-press menu; manage and restore under Settings → Screen time apps. Excluded time is removed from home, day/week reviews and the weekly notification, but app timers still use raw usage | `Settings.screenTimeExcluded`, `DayUsage.excluding()`, `ui/drawer/AppMenu.kt`, `ui/settings/FocusPages.kt`, `WeekSummary.kt` |
 | Home layout that always fits | `ui/home/HomeScreen.kt` (`Fit` options, measured constants) |
 | Drawer: search ranking, recent installs, A–Z scrubber | `ui/drawer/DrawerScreen.kt` |
 | Drawer sort (A–Z / Most used / Recent), "Sort: …" under the search bar | `DrawerScreen.kt`, `Settings.drawerSort` (`DrawerSort`), `UsageRepository.sortStats()` |
@@ -39,7 +40,6 @@ ui/     theme/ components/ home/ drawer/ block/ review/ settings/   + Launching.
 | Swipe right on home = the phone's web search | `MainActivity.kt` `Launcher` (pointerInput on the pager), `ui/Launching.kt` `openWebSearch`, `Settings.swipeRightSearch` |
 | Double tap = lock (default on; needs the accessibility service) | `HomeScreen.kt`, `Settings.doubleTapLock`, `FocusAccessibilityService` |
 | Long-press menu, timer dialog | `ui/drawer/AppMenu.kt` |
-<<<<<<< HEAD
 | Music and note sections on home (text, lines between sections, off by default). **Music is only there while something plays** (+1 min after it stops; `Settings.musicAutoHide`, owner 2026-09-20) | `HomeWidgets.kt` `MusicState`, `rememberMusicState`, `MusicSection`, `NoteSection`; `ui/home/MusicLinger.kt` (pure rule, tested); `service/MediaListener.kt`; toggles in `LauncherPages.kt` `HomePage` |
 | Welcome screen (once) and learn-by-doing tips on the home screen | `ui/settings/WelcomePage.kt` (route `welcome`), `data/AppState.kt` `Tip` / `did()` / `tutorialSeen`; hooks in `HomeScreen.kt`, `MainActivity.kt`; drawer hint in `DrawerScreen.kt` |
 | Settings backup / restore as one JSON file through the system file picker | `data/SettingsBackup.kt` (envelope `app`/`format`/`settings`, tested), rows in `SettingsRoot.kt` `AboutPage` |
@@ -48,7 +48,7 @@ ui/     theme/ components/ home/ drawer/ block/ review/ settings/   + Launching.
 | Setup page (default home, usage access, app locking, notifications, calendar) | `ui/settings/SetupPage.kt` |
 | Launch gate (wall / consent before an app opens) | `ui/Launching.kt` `launchApp`, `start`, `launchOptions` |
 | Wall + consent UI | `ui/block/BlockScreen.kt`, `BlockActivity.kt` |
-| Settings pages (12 routes) | `ui/settings/*` ; routes: main setup home fastapps drawer hidden timers timerapps weekly appearance gestures about |
+| Settings pages (13 routes) | `ui/settings/*` ; routes: main setup home fastapps drawer hidden timers timerapps screentimeapps weekly appearance gestures about |
 | Theme, light-up press feedback, edge-to-edge, refresh rate | `ui/theme/Theme.kt` |
 
 ## Things that are easy to get wrong
@@ -69,7 +69,7 @@ ui/     theme/ components/ home/ drawer/ block/ review/ settings/   + Launching.
   does not need exact minutes. Never show those numbers as screen time.
 - **No hosted AppWidgets** (the search "widget" is an intent): a widget would bring colour and
   icons onto the home screen.
-- **`DayUsage.CACHE_VERSION`** must be bumped whenever the usage computation changes.
+- **`DayUsage.CACHE_VERSION`** must be bumped whenever the raw usage computation changes. Screen-time exclusions are applied to displayed `DayUsage` values; they do not change the cached raw usage or app timers.
 - **Per-resume work is multiplied ~100×/day.** Anything added to the resume path or a timer must
   be incremental or event-driven.
 - **`TRIM_MEMORY_UI_HIDDEN` fires on every app launch**; never clear caches there.
@@ -77,10 +77,11 @@ ui/     theme/ components/ home/ drawer/ block/ review/ settings/   + Launching.
   (use `currentLocale()` and `collectAsStateWithLifecycle`).
 
 ## Quality bar
-33 unit tests pass (tracker 13, emoji 6, settings 7, music linger 7; `org.json` is a test-only
-dependency because the JVM has none); `lintDebug` = 0 errors (remaining warnings are "newer
-version available", deliberate: newer AndroidX needs compileSdk 37 + AGP 9.1). 37 Kotlin files,
-about 7,800 lines.
+The latest recorded full test run had 37 passing unit tests (2026-11-04). A WeekSummary regression
+test for app exclusions was added on 2026-11-06 but has not yet run: the available Android Studio
+JBR is Java 25.0.4, which this project's current Gradle/Kotlin plugin cannot parse. The latest
+recorded `lintDebug` had 0 errors (remaining warnings are "newer version available", deliberate:
+newer AndroidX needs compileSdk 37 + AGP 9.1). 37 Kotlin files, about 7,800 lines.
 Release APK = 1,366,083 bytes (≈ 1.37 MB). Version **1.1** (`versionCode` 2) since 2026-09-19;
 1.0 was 1,366,063 bytes. The same checks run on GitHub for every push and pull request.
 

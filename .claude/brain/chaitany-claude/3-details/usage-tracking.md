@@ -39,6 +39,12 @@ History (`compute(from,to)`) still does one full pass; finished days are cached 
 `files/usage/YYYY-MM-DD.json`. **Bump `DayUsage.CACHE_VERSION` (now 4) when the math changes.**
 Empty days are never cached (the OS may simply have dropped the events: retention ≈ a week).
 
+User-selected screen-time exclusions are package names in `Settings.screenTimeExcluded`. They are
+applied by `DayUsage.excluding()` at presentation and weekly-summary boundaries; the cached usage,
+raw `today` flow, and `usageTodayMs()` remain unchanged. This keeps app timers accurate and allows
+excluded apps to be counted again immediately. Do not bump `DayUsage.CACHE_VERSION` for this
+display-only filter.
+
 ## What is excluded, and two traps
 - Real launchers and `com.android.systemui` are left out of totals but still flow through the
   tracker (coming home "covers" the app that was open).

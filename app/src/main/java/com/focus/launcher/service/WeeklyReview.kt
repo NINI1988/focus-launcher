@@ -79,7 +79,8 @@ object WeeklyReview {
     suspend fun notify(context: Context, weekStart: LocalDate) {
         if (!Perms.canPostNotifications(context)) return
         val days = Graph.usage.loadDays(weekStart, weekStart.plusDays(6))
-        val total = days.values.sumOf { it.total }
+        val excluded = Graph.settings.value.screenTimeExcluded
+        val total = days.values.sumOf { it.excluding(excluded).total }
         val text = if (total > 0) {
             "${formatDuration(total)} on your phone this week. Take a minute to look at where it went."
         } else {

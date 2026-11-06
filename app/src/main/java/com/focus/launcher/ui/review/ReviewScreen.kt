@@ -111,7 +111,7 @@ private fun TodayTab(settings: Settings) {
     val today by Graph.usage.today.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { Graph.usage.refreshToday(maxAgeMs = 0) }
 
-    val usage = today ?: DayUsage.empty(LocalDate.now())
+    val usage = (today ?: DayUsage.empty(LocalDate.now())).excluding(settings.screenTimeExcluded)
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp)) {
         VSpace(26.dp)
         T(formatDuration(usage.total), size = 54.sp, weight = FontWeight.Light, maxLines = 1)
@@ -164,7 +164,7 @@ private fun WeekTab(settings: Settings, initialWeek: LocalDate?) {
         summary = null
         val days = Graph.usage.loadDays(weekStart.minusDays(7), weekStart.plusDays(6))
         val stats = Graph.limits.stats(weekStart, weekStart.plusDays(6))
-        summary = WeekSummary.build(weekStart, today, days, stats) { Graph.apps.labelForPackage(it) }
+        summary = WeekSummary.build(weekStart, today, days, stats, { Graph.apps.labelForPackage(it) }, settings.screenTimeExcluded)
     }
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp)) {

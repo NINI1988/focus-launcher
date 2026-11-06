@@ -9,6 +9,7 @@ class SettingsBackupTest {
         dark = false, font = FontChoice.MONO, favorites = listOf("a/b", "c/d#10"),
         hidden = setOf("x/y"), renames = mapOf("a/b" to "Mail"), appLimits = mapOf("com.x" to 15, "com.y" to 0),
         socialDefaultMin = 45, doubleTapLock = false, note = "milk", showMusic = true,
+        screenTimeExcluded = setOf("com.example.maps", "com.example.clock"),
     )
 
     @Test fun `what goes out comes back`() {

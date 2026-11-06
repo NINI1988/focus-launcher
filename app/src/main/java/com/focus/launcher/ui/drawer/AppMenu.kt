@@ -52,6 +52,7 @@ fun AppMenu(
     val favorites = settings.favorites.filter { key -> installed.any { it.key == key } }
     val isFavorite = app.key in favorites
     val isHidden = app.key in settings.hidden
+    val isScreenTimeExcluded = app.packageName in settings.screenTimeExcluded
     val limit = Graph.limits.limitFor(app.packageName, settings)
     val used = today?.perApp?.get(app.packageName)
 
@@ -95,6 +96,20 @@ fun AppMenu(
                     MenuRow("App timer", detail = limit?.let { formatMinutes(it.minutes) + " a day" } ?: "Off") { sub = Sub.TIMER }
                 }
                 MenuRow("Rename") { sub = Sub.RENAME }
+                if (!app.isWorkProfile) {
+                    MenuRow(if (isScreenTimeExcluded) "Count in screen time" else "Exclude from screen time") {
+                        Graph.settings.update { s ->
+                            s.copy(
+                                screenTimeExcluded = if (isScreenTimeExcluded) {
+                                    s.screenTimeExcluded - app.packageName
+                                } else {
+                                    s.screenTimeExcluded + app.packageName
+                                },
+                            )
+                        }
+                        onDismiss()
+                    }
+                }
                 MenuRow(if (isHidden) "Unhide app" else "Hide app") {
                     Graph.settings.update { s -> s.copy(hidden = if (isHidden) s.hidden - app.key else s.hidden + app.key) }
                     if (!isHidden) {

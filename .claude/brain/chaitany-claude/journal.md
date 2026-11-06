@@ -898,3 +898,16 @@ more than the original values. The no-scroll height estimate uses the same value
 **Verified:** editor diagnostics report no errors for `HomeScreen.kt`; `git diff --check` passes.
 The focused Gradle compile remains blocked by the available Java 25.0.4 JBR.
 
+## 2026-11-06 · Per-app screen-time exclusions
+
+**Asked:** implement issue #50 and make app exclusions adjustable, with a way to count apps again.
+**Done:** added an app-specific exclusion toggle to the long-press menu and a Settings → Screen
+time apps page to add exclusions and restore apps. Excluded package time is removed from the home
+total, today and week reviews, weekly comparison and weekly notification; raw usage and app timers
+are unchanged. Added settings round-trip coverage and a WeekSummary regression test.
+**Verified:** editor diagnostics report no errors after correcting the settings-page calls to use
+`Graph.settings.update`; `git diff --check` passes. Gradle compilation and unit tests remain
+unverified because the available Android Studio JBR is Java 25.0.4, unsupported by this project's
+current Gradle/Kotlin plugin.
+**Open:** rerun compile and unit tests with JDK 21.
+

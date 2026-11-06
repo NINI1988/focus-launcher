@@ -84,6 +84,7 @@ object Routes {
     const val HIDDEN = "hidden"
     const val TIMERS = "timers"
     const val TIMER_APPS = "timerapps"
+    const val SCREEN_TIME_APPS = "screentimeapps"
     const val WEEKLY = "weekly"
     const val APPEARANCE = "appearance"
     const val GESTURES = "gestures"
@@ -135,6 +136,7 @@ fun SettingsRoot(settings: Settings, startRoute: String?, onExit: () -> Unit) {
             Routes.HIDDEN -> HiddenAppsPage(settings, apps, back)
             Routes.TIMERS -> TimersPage(settings, apps, status, back, go)
             Routes.TIMER_APPS -> TimerAppsPage(settings, apps, back, go)
+            Routes.SCREEN_TIME_APPS -> ScreenTimeAppsPage(settings, apps, back)
             Routes.WEEKLY -> WeeklyPage(settings, status, back, go)
             Routes.APPEARANCE -> AppearancePage(settings, back)
             Routes.GESTURES -> GesturesPage(settings, status, back, go)
@@ -171,6 +173,12 @@ private fun MainPage(settings: Settings, appCount: Int, status: SetupStatus, onB
             subtitle = "Daily limits that lock social apps and games",
             value = if (settings.timersEnabled) "On" else "Off",
             onClick = { go(Routes.TIMERS) },
+        )
+        SettingRow(
+            "Screen time apps",
+            subtitle = "Choose which apps count toward your screen-time totals",
+            value = settings.screenTimeExcluded.size.toString(),
+            onClick = { go(Routes.SCREEN_TIME_APPS) },
         )
         SettingRow(
             "Weekly review",
