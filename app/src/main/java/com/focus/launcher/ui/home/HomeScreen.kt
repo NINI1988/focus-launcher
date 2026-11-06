@@ -321,6 +321,9 @@ fun HomeScreen(
                 Graph.state.did(Tip.SCREEN_TIME)
                 if (usageAccess) onOpenReview(null) else Perms.openUsageAccess(context)
             }
+            val displayToday = remember(today, settings.screenTimeExcluded) {
+                today?.excluding(settings.screenTimeExcluded)
+            }
             if (split) {
                 SplitClockRow(
                     settings = settings,
@@ -341,7 +344,7 @@ fun HomeScreen(
                             onRequestAccess = { askCalendar.launch(Manifest.permission.READ_CALENDAR) },
                         )
                     } else {
-                        SplitScreenTime(today, usageAccess, onClick = openScreenTime, onLongPress = { choosingSplitSide = true }, highlight = tip == Tip.SCREEN_TIME)
+                        SplitScreenTime(displayToday, usageAccess, onClick = openScreenTime, onLongPress = { choosingSplitSide = true }, highlight = tip == Tip.SCREEN_TIME)
                     }
                 }
             } else {
@@ -359,7 +362,7 @@ fun HomeScreen(
                 VSpace(10.dp)
                 val ringed = settings.clockStyle == ClockStyle.RING
                 ScreenTimeLine(
-                    today = today,
+                    today = displayToday,
                     hasAccess = usageAccess,
                     align = if (ringed) Alignment.CenterHorizontally else settings.homeAlign.horizontal(),
                     onClick = openScreenTime,

@@ -18,7 +18,8 @@
 | --- | --- |
 | No icons anywhere; black and white only | Includes emoji: stripped from calendar titles, greyscaled in app names |
 | Home layout follows his sketch | clock, section(s), ≤5 fast apps, two corner shortcuts; swipe left = drawer |
-| Long-press menu order | App name · Uninstall · App info · Move to fast apps · App timer · Rename · Hide |
+| Long-press menu order | App name · Uninstall · App info · Move to fast apps · App timer · Rename · Exclude from screen time (personal apps) · Hide; the exclusion action becomes “Count in screen time” when already excluded |
+| **Exclude selected apps from screen time** (2026-11-06; issue #50) | The user can exclude or restore an app from its long-press menu and manage exclusions in Settings → Screen time apps. Excluded package time is omitted from home, today/week review totals and app breakdowns, comparisons, and the weekly notification. Raw usage remains available to app timers. |
 | **The clock is a split rectangle** (2026-09-20, second sketch): "from the circular to the rectangle with no outside boundary, keep only the center vertical boundary"; left = clock, right = "calendar or mail or any widget" | `ClockStyle.SPLIT`, the default; existing installs that still had the old default ring move over once. Right half = the calendar's next events or today's screen time, chosen by long-press. Ring and plain stay as options. **Mail and "any widget" are not there**: a launcher cannot read mail without notification access, and hosted Android widgets would bring icons and colour (open decision 18) |
 | Ring shows **battery %** | Applies to the ring style. "Day passed" kept as an option, not the default. In the split and plain styles the same setting only decides whether the battery is written out |
 | Tap on the ring opens a **specific app** | Configurable; long-press the ring to choose (Settings alone was not discoverable) |

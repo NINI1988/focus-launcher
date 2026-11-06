@@ -123,6 +123,9 @@ data class Settings(
     val weekStartsMonday: Boolean = true,
     val reviewHour: Int = 20,
 
+    // Excluded from screen time
+    val screenTimeExcluded: Set<String> = emptySet(),
+
     // Gestures
     val swipeDownNotifications: Boolean = true,
     val swipeUpSearch: Boolean = true,
@@ -185,6 +188,8 @@ data class Settings(
         put("weeklyEnabled", weeklyEnabled)
         put("weekStartsMonday", weekStartsMonday)
         put("reviewHour", reviewHour)
+
+        put("screenTimeExcluded", JSONArray(screenTimeExcluded.toList()))
 
         put("swipeDownNotifications", swipeDownNotifications)
         put("swipeUpSearch", swipeUpSearch)
@@ -263,6 +268,8 @@ data class Settings(
                 weeklyEnabled = o.optBoolean("weeklyEnabled", d.weeklyEnabled),
                 weekStartsMonday = o.optBoolean("weekStartsMonday", d.weekStartsMonday),
                 reviewHour = o.optInt("reviewHour", d.reviewHour).coerceIn(0, 23),
+
+                screenTimeExcluded = o.optJSONArray("screenTimeExcluded").strings().toSet(),
 
                 swipeDownNotifications = o.optBoolean("swipeDownNotifications", d.swipeDownNotifications),
                 swipeUpSearch = o.optBoolean("swipeUpSearch", d.swipeUpSearch),

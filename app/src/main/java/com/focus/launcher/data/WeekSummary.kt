@@ -73,11 +73,15 @@ class WeekSummary(
             usage: Map<LocalDate, DayUsage>,
             limitStats: Map<String, LimitStats>,
             labelOf: (String) -> String,
+            excluded: Set<String> = emptySet(),
         ): WeekSummary {
-            val days = (0L..6L).map { offset -> weekStart.plusDays(offset).let { usage[it] ?: DayUsage.empty(it) } }
+            val days = (0L..6L).map { offset ->
+                val d = weekStart.plusDays(offset)
+                (usage[d] ?: DayUsage.empty(d)).excluding(excluded)
+            }
             val elapsed = days.count { !it.date.isAfter(today) }.coerceIn(1, 7)
 
-            val previous = (1L..7L).mapNotNull { usage[weekStart.minusDays(it)] }
+            val previous = (1L..7L).mapNotNull { usage[weekStart.minusDays(it)]?.excluding(excluded) }
             // A comparison only means something if most of last week was actually recorded.
             val previousAverage = previous.filter { it.total > 0 }.takeIf { it.size >= 4 }
                 ?.let { recorded -> recorded.sumOf { it.total } / recorded.size }

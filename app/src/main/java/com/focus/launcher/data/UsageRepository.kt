@@ -41,6 +41,12 @@ class DayUsage(
         perApp.entries.asSequence().filter { it.value >= 1000 }
             .sortedByDescending { it.value }.take(n).map { it.key to it.value }.toList()
 
+    fun excluding(excluded: Set<String>): DayUsage {
+        if (excluded.isEmpty()) return this
+        val filtered = appHours.filterKeys { it !in excluded }
+        return DayUsage(date, filtered, unlocks)
+    }
+
     fun toJson(): JSONObject = JSONObject().apply {
         put("v", CACHE_VERSION)
         put("date", date.toString())
