@@ -859,3 +859,21 @@ restored through the picker and `shared_prefs` showed the new values (the emulat
 home is the stock launcher, so Focus's own screen was opened by intent: white theme, mono font
 and the restored note were all there).
 
+## 2026-11-06 · Narrow browser Custom Tab attribution matching
+
+**Asked:** verify browser Custom Tab activity naming and whether class-name matching should be
+more specific.
+**Done:** constrained the existing heuristic to known browser package names and activity classes in
+the `.customtabs.` namespace. Added regression tests for supported variants and unrelated
+packages/classes. Updated `usage-tracking.md`: Android's task-root usage
+source exists for system observers but is not a public API for ordinary apps; bumped the documented
+usage cache version to 4.
+**Verified:** inspected only relevant Package Manager component declarations and filtered usage
+event class names with read-only adb queries; no taps, screenshots, or special-access changes.
+Editor diagnostics found no errors and `git diff --check` passed. Unit tests could not run because
+the available Android Studio JBR is Java 25.0.4, which the project's current Kotlin Gradle plugin
+cannot parse.
+**Open:** exact class names and package filters remain browser-implementation-specific; other
+installed browser variants were not available to verify. No device app names or usage records are
+retained here.
+

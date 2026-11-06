@@ -54,8 +54,8 @@ class DayUsage(
         const val HOUR_MS = 3_600_000L
 
         /** Bump whenever the way usage is computed changes, so days cached the old way are redone. */
-        // 3: time in the Settings app is no longer mistaken for time on a home screen.
-        const val CACHE_VERSION = 3
+        // 4: browser Custom Tab time is attributed to the app that opened it.
+        const val CACHE_VERSION = 4
 
         fun empty(date: LocalDate) = DayUsage(date, emptyMap(), 0)
 
@@ -205,15 +205,23 @@ class UsageRepository(private val context: Context, private val apps: () -> AppR
     fun lastResumedPackage(since: Long): String? {
         if (!hasAccess()) return null
         val events = try {
-            usm.queryEvents(since, System.currentTimeMillis() + 1000)
+            usm.queryEvents((since - LOOKBACK_MS).coerceAtLeast(0), System.currentTimeMillis() + 1000)
         } catch (_: Exception) {
             return null
         } ?: return null
+        val attributor = ForegroundAttributor { it in ignoredPackages() }
         val e = UsageEvents.Event()
         var last: String? = null
         while (events.hasNextEvent()) {
             events.getNextEvent(e)
-            if (e.eventType == UsageEvents.Event.ACTIVITY_RESUMED) last = e.packageName
+            val pkg = e.packageName ?: continue
+            when (e.eventType) {
+                UsageEvents.Event.ACTIVITY_RESUMED -> {
+                    val attributed = attributor.resumed(pkg, e.className)
+                    if (e.timeStamp >= since) last = attributed
+                }
+                UsageEvents.Event.ACTIVITY_PAUSED -> attributor.paused(pkg, e.className)
+            }
         }
         return last
     }
@@ -247,13 +255,16 @@ class UsageRepository(private val context: Context, private val apps: () -> AppR
     }
 
     /** Feeds one system event to [tracker]; returns true when it was an unlock. */
-    private fun dispatch(e: UsageEvents.Event, tracker: ForegroundTracker): Boolean {
+    private fun dispatch(e: UsageEvents.Event, tracker: ForegroundTracker, attributor: ForegroundAttributor): Boolean {
         val pkg = e.packageName ?: return false
         val ts = e.timeStamp
         when (e.eventType) {
-            UsageEvents.Event.ACTIVITY_RESUMED -> tracker.resumed(pkg, ts)
-            UsageEvents.Event.ACTIVITY_PAUSED -> tracker.paused(pkg, ts)
-            UsageEvents.Event.SCREEN_NON_INTERACTIVE, UsageEvents.Event.DEVICE_SHUTDOWN -> tracker.screenOff(ts)
+            UsageEvents.Event.ACTIVITY_RESUMED -> tracker.resumed(attributor.resumed(pkg, e.className), ts)
+            UsageEvents.Event.ACTIVITY_PAUSED -> tracker.paused(attributor.paused(pkg, e.className), ts)
+            UsageEvents.Event.SCREEN_NON_INTERACTIVE, UsageEvents.Event.DEVICE_SHUTDOWN -> {
+                attributor.reset()
+                tracker.screenOff(ts)
+            }
             UsageEvents.Event.KEYGUARD_HIDDEN -> {
                 tracker.tick(ts)
                 return true
@@ -276,6 +287,7 @@ class UsageRepository(private val context: Context, private val apps: () -> AppR
         private val hours = HashMap<String, LongArray>()
         private var unlocks = 0
         private val event = UsageEvents.Event()
+        private val attributor = ForegroundAttributor { it in ignored }
         private val tracker = ForegroundTracker(COVER_GRACE_MS) { pkg, start, end -> if (add(hours, pkg, start, end)) version++ }
 
         /** Everything before this instant has been read. Starts early so a session that straddles midnight is seen whole. */
@@ -297,7 +309,7 @@ class UsageRepository(private val context: Context, private val apps: () -> AppR
             } ?: return
             while (events.hasNextEvent()) {
                 events.getNextEvent(event)
-                if (dispatch(event, tracker) && event.timeStamp in dayStart until dayEnd) {
+                if (dispatch(event, tracker, attributor) && event.timeStamp in dayStart until dayEnd) {
                     unlocks++
                     version++
                 }
@@ -367,11 +379,12 @@ class UsageRepository(private val context: Context, private val apps: () -> AppR
             }
         }
 
+        val attributor = ForegroundAttributor { it in ignored }
         val tracker = ForegroundTracker(COVER_GRACE_MS, ::add)
         val e = UsageEvents.Event()
         while (events.hasNextEvent()) {
             events.getNextEvent(e)
-            if (dispatch(e, tracker) && e.timeStamp >= rangeStart) {
+            if (dispatch(e, tracker, attributor) && e.timeStamp >= rangeStart) {
                 val day = Instant.ofEpochMilli(e.timeStamp).atZone(zone).toLocalDate()
                 unlocks[day] = (unlocks[day] ?: 0) + 1
             }
